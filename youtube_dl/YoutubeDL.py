@@ -527,7 +527,8 @@ class YoutubeDL(object):
         else:
             message = self._bidi_workaround(message)
             output = message + '\n'
-            self._write_string(output, self._err_file)
+            #self._write_string(output, self._err_file)
+            print(output)
 
     def to_console_title(self, message):
         if not self.params.get('consoletitle', False):
@@ -833,6 +834,7 @@ class YoutubeDL(object):
 
     @__handle_extraction_exceptions
     def __extract_info(self, url, ie, download, extra_info, process):
+        print('**** extract_info ', url)
         ie_result = ie.extract(url)
         if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
             return
@@ -844,7 +846,12 @@ class YoutubeDL(object):
             }
         self.add_default_extra_info(ie_result, ie, url)
         if process:
-            return self.process_ie_result(ie_result, download, extra_info)
+            for i in range(1000):
+              try:
+                print('***try ', i, url)
+                return self.process_ie_result(ie_result, download, extra_info)
+              except:
+                pass
         else:
             return ie_result
 
@@ -1975,8 +1982,10 @@ class YoutubeDL(object):
                     # Just a single file
                     success = dl(filename, info_dict)
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self.report_error('unable to download video data: %s' % error_to_compat_str(err))
-                return
+                #self.report_error('unable to download video data: %s' % error_to_compat_str(err))
+                import traceback
+                traceback.print_stack(file=sys.stdout)
+                raise UnavailableVideoError(err)
             except (OSError, IOError) as err:
                 raise UnavailableVideoError(err)
             except (ContentTooShortError, ) as err:
@@ -2069,6 +2078,7 @@ class YoutubeDL(object):
                     url, force_generic_extractor=self.params.get('force_generic_extractor', False))
             except UnavailableVideoError:
                 self.report_error('unable to download video')
+                raise
             except MaxDownloadsReached:
                 self.to_screen('[info] Maximum number of downloaded files reached.')
                 raise
